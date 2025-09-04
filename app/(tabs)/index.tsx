@@ -55,12 +55,6 @@ const styles = StyleSheet.create({
     padding: 10,
     /* borderColor: "#fff", */
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
+
   
 });
