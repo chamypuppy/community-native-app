@@ -9,6 +9,7 @@ import { TextInput } from "react-native-gesture-handler";
 } */
 /* const onChangeInput = (e) => console.log(e); */
 const STORAGE_KEY = "@formData"
+const USERS_KEY = "@usersData";
 
 export default function signup() {
   //const formData = new FormData({});
@@ -16,8 +17,6 @@ export default function signup() {
   const [id, setId] = useState("");
   const [pwd1, setPwd1] = useState("");
   const [pwd2, setPwd2] = useState("");
-  //const [name, setName] = useState("");
-  //const [tel, setTel] = useState("");
   const [email, setEmail] = useState("");
   const [formData, setFormData] = useState({form_id: "", form_pwd1: "", form_pwd2: "",
     form_name: "", form_tel: "", form_email: ""});
@@ -27,8 +26,7 @@ export default function signup() {
     "@gmail.com", "@naver.com", "@daum.net",
     "@hanmail.net", "@yahoo.com", "@outlook.com",
     "@nate.com", "@kakao.com"];
-    const [newEmail, setNewEmail] = useState<string[]>([]);
-    const [selectedEmail, setSelectedEmail] = useState("");
+  const [newEmail, setNewEmail] = useState<string[]>([]);
 
   function onChangeInput(formKey: string, formValue: string) {
 
@@ -90,10 +88,10 @@ export default function signup() {
 
     try {
     /* 아이디, 비번 최후 검증 */
-    const formIdValue = formData.form_id.trim();
+    const formIdValue = formData.form_id.trim(); // input value
     if(formIdValue && formIdValue.length < 6) {
       return alert("아이디는 6글자 이상으로 입력해 주세요.");
-    }
+    } 
     const formPwd1Value = formData.form_pwd1.trim();
     const formPwd2Value = formData.form_pwd2.trim();
     const isMatched = (formPwd1Value === formPwd2Value);
@@ -103,24 +101,46 @@ export default function signup() {
         return alert("비밀번호를 6글자 이상으로 입력해 주세요.");
       }
 
+
+      /* 저장 전 아이디 동일여부확인 */
+      const originUsersData = await AsyncStorage.getItem(USERS_KEY);
+      let usersArrList = originUsersData ? JSON.parse(originUsersData) : [];
+      const isExisting = (user: { form_id: string; }) => user.form_id === formData.form_id;
+      const isExistingUser = usersArrList.some(isExisting);
+
+      if(isExistingUser) {
+        setId("이미 존재하는 아이디입니다.");
+        return;
+      }
+
       /* 비밀번호 hash화 */
       const hashPwd = bcrypt.hashSync(formData.form_pwd1, 10);
 
-      setFormData(newFormData => ({
+      /* setFormData(newFormData => ({
       ...newFormData,
-      
-      /* form_pwd1: newFormData.form_pwd1 ? hashPwd : newFormData.form_pwd1,
-      form_pwd2: newFormData.form_pwd2 ? hashPwd : newFormData.form_pwd2 */
       form_pwd1: hashPwd,
       form_pwd2: hashPwd
-    }));
+      })); */
+      const hashFormData = {
+        ...formData,
+        form_pwd1: hashPwd,
+        form_pwd2: hashPwd
+      };
+      setFormData(hashFormData);
 
-      const jsonFormValue = JSON.stringify(formData);
-      await AsyncStorage.setItem(STORAGE_KEY, jsonFormValue);
+      usersArrList.push(hashFormData);
+
+      
+
+      //const jsonFormValue = JSON.stringify(formData);
+      const jsonValue = JSON.stringify(usersArrList);
+
+      await AsyncStorage.setItem(USERS_KEY, jsonValue);
+      //await AsyncStorage.setItem(STORAGE_KEY, jsonFormValue);
       alert("회원가입에 성공했습니다!");
-      const saveFormData = await AsyncStorage.getItem(STORAGE_KEY);
+      const saveFormData = await AsyncStorage.getItem(USERS_KEY);
       console.log(saveFormData);
-      router.push("/home");
+      router.push("/");
 
     } catch {
       console.error("🟠 signup.tsx 오류: 회원가입에 오류가 발생했습니다.");
