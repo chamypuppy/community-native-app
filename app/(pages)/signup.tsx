@@ -142,8 +142,9 @@ export default function signup() {
       console.log(saveFormData);
       router.push("/");
 
-    } catch {
-      console.error("🟠 signup.tsx 오류: 회원가입에 오류가 발생했습니다.");
+    } catch(error) {
+      console.log("🟠 signup.tsx 오류: 회원가입에 오류가 발생했습니다.");
+      console.error("에러메세지: ", error);
     }
   }
 
