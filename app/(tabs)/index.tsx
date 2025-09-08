@@ -13,7 +13,6 @@ export default function HomeScreen() {
   function onChangeLoginInput(formKey: string, formValue: string) {
 
     const emptyCheck = /\s/;
-    //const engCheck = /[a-zA-Z]/;
     const korCheck = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/;
 
     /* 넣기전에 입력값조사 */
@@ -51,34 +50,55 @@ export default function HomeScreen() {
       const saveFormData = await AsyncStorage.getItem(USERS_KEY);
       console.log(saveFormData);
 
-      if(!saveFormData) {
+      if(!saveFormData || saveFormData.length === 0) {
         alert("등록된 사용자가 없습니다.");
         return;
       }
 
-      const signupUserArr = JSON.parse(saveFormData);
+      const signupUserList = JSON.parse(saveFormData);
 
-      const findUserId = (user: { form_id: string; }) => user.form_id === loginFormData.form_id;
-      const user = signupUserArr.find(findUserId);
-
-      if(!user) {
+      const findSavedId = (user: { form_id: string; }) => user.form_id === loginFormData.form_id;
+      const savedUserData = signupUserList.find(findSavedId);
+      //const saveId = signupUserList.find(findSaveId);
+      
+      if(!savedUserData) {
         alert("가입되어있지 않은 아이디입니다.")
         return;
-      };
+      } 
 
-      const compareHashPwd = bcrypt.compareSync(loginFormData.form_pwd, user.form_pwd);
+      //const hashPwd = bcrypt.hashSync(loginFormData.form_pwd, 10);
+      //const isSamePwd = savedUserData.form_pwd1 === hashPwd;
+      const isSamePwd = bcrypt.compareSync(loginFormData.form_pwd, savedUserData.form_pwd1);
 
-      if(!compareHashPwd) {
+      
+      /* const findSavePwd = (user: { form_pwd: string; }) => user.form_pwd === hashPwd;
+      const savePwd = signupUserList.find(findSavePwd); */
+
+
+      /* const isSameId = savedUserData.form_id === loginFormData.form_id;
+      console.log("아이디비교: ", isSameId);
+      console.log("DB아이디: ", savedUserData.form_id);
+      console.log("DB아이디: ", loginFormData.form_id); */
+
+
+      if(!isSamePwd) {
         alert("비밀번호가 틀렸습니다.");
+        //console.log(findSavePwd);
+        //console.log(savePwd);
+        console.log(loginFormData.form_pwd);
+        console.log(isSamePwd);
+        //console.log("아이디:", saveId);
         return;
-      };
+      }
+
 
       alert("로그인 되었습니다!");
       router.push("/home");
 
 
-    } catch {
+    } catch (error) {
       console.log("🟠 index.tsx 오류: 로그인에 오류가 발생했습니다.");
+      console.error(error);
       alert("로그인 중 오류가 발생했습니다.\n다시 시도해 주세요.");
     };
   };
